@@ -13,6 +13,7 @@
 
 # 单链表
 和线性结构不同，链式结构内存不连续的，而是一个个串起来的，这个时候就需要每个链接表的节点保存一个指向下一个节点的指针。
+这里可不要混淆了列表和链表（它们的中文发音类似，但是列表 list 底层其实还是线性结构，链表才是真的通过指针关联的链式结构）。
 看到指针你也不用怕，这里我们用的 python，你只需要一个简单赋值操作就能实现，不用担心 c 语言里复杂的指针。
 
 先来定义一个链接表的节点，刚才说到有一个指针保存下一个节点的位置，我们叫它 next， 当然还需要一个 value 属性保存值
@@ -56,6 +57,9 @@ linked_list.remove(value)     | O(n)           |
 
 ```py
 class Node(object):
+    # 如果节点很多，我们可以用 __slots__ 来节省内存，把属性保存在一个 tuple 而不是 dict 里
+    # 感兴趣可以自行搜索  python  __slots__
+    __slots__ = ('value', 'prev', 'next')
 
     def __init__(self, value=None, prev=None, next=None):
         self.value, self.prev, self.next = value, prev, next
@@ -66,7 +70,7 @@ class Node(object):
 - 看似我们反过来遍历双链表了。反过来从哪里开始呢？我们只要让 root 的 prev 指向 tail 节点，不就串起来了吗？
 - 直接删除节点，当然如果给的是一个值，我们还是需要查找这个值在哪个节点？ - 但是如果给了一个节点，我们把它拿掉，直接让它的前后节点互相指过去不就行了？哇欧，删除就是 O(1) 了，两步操作就行啦
 
-好，废话不多说，我们在视频里介绍怎么实现一个双链表 ADT。
+好，废话不多说，我们在视频里介绍怎么实现一个双链表 ADT。你可以直接在本项目的 `docs/03_链表/double_link_list.py` 找到代码。
 最后让我们看下它的时间复杂度:(这里 CircularDoubleLinkedList 取大写字母缩写为 cdll)
 
 循环双端链表操作                       | 平均时间复杂度 |
@@ -77,11 +81,27 @@ cdll.remove(node)，注意这里参数是 node | O(1)           |
 cdll.headnode()                        | O(1)           |
 cdll.tailnode()                        | O(1)           |
 
+
 # 小问题：
 - 这里单链表我没有实现 insert 方法，你能自己尝试实现吗？  insert(value, new_value)，我想在某个值之前插入一个值。你同样需要先查找，所以这个步骤也不够高效。
 - 你能尝试自己实现个 lru cache 吗？需要使用到我们这里提到的循环双端链表
+- 借助内置的 collections.OrderedDict，它有两个方法 popitem 和 move_to_end，我们可以迅速实现一个 LRU cache。请你尝试用 OrderedDict 来实现。
 - python 内置库的哪些数据结构使用到了本章讲的链式结构？
+
 
 # 相关阅读
 
 [那些年，我们一起跪过的算法题- Lru cache[视频]](https://zhuanlan.zhihu.com/p/35175401)
+
+# 勘误：
+
+视频中 LinkedList.remove 方法讲解有遗漏， linked_list.py 文件已经修正，请读者注意。具体请参考 [fix linked_list & add gitigonre](https://github.com/PegasusWang/python_data_structures_and_algorithms/pull/3)。视频最后增加了一段勘误说明。
+
+# Leetcode
+
+反转链表 [reverse-linked-list](https://leetcode.com/problems/reverse-linked-list/)
+
+这里有一道关于 LRU 的练习题你可以尝试下。
+[LRU Cache](https://leetcode.com/problems/lru-cache/description/)
+
+合并两个有序链表 [merge-two-sorted-lists](/https://leetcode.com/problems/merge-two-sorted-lists/submissions/)

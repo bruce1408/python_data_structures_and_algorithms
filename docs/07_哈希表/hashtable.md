@@ -53,7 +53,7 @@ h(388) = 388 % M = 11
 - 二次探查(quadratic probing): 当一个槽被占用，以二次方作为偏移量。 $ h(k, i) = (h^\prime(k) + c_1 + c_2i^2) \% m , i=0,1,...,m-1 $
 - 双重散列(double hashing): 重新计算 hash 结果。 $ h(k,i) = (h_1(k) + ih_2(k)) \% m $
 
-cpython 使用的是二次探查，这里我们也使用二次探查， 我们选一个简单的二次探查函数 $ h(k, i) = (home + i^2) \% m $，它的意思是如果
+我们选一个简单的二次探查函数 $ h(k, i) = (home + i^2) \% m $，它的意思是如果
 遇到了冲突，我们就在原始计算的位置不断加上 i 的平方。我写了段代码来模拟整个计算下标的过程：
 
 ```py
@@ -103,10 +103,33 @@ h(388) = 388 % M = 1
 ![](quadratic_result.png)
 
 
+# Cpython 如何解决哈希冲突
+如果你对 cpython 解释器的实现感兴趣，可以参考下这个文件 [dictobject.c](https://github.com/python/cpython/blob/master/Objects/dictobject.c#L165)。
+不同 cpython 版本实现的探查方式是不同的，后边我们自己实现 HashTable ADT 的时候会模仿这个探查方式来解决冲突。
+
+
+```
+The first half of collision resolution is to visit table indices via this
+recurrence:
+
+    j = ((5*j) + 1) mod 2**i
+
+For any initial j in range(2**i), repeating that 2**i times generates each
+int in range(2**i) exactly once (see any text on random-number generation for
+proof).  By itself, this doesn't help much:  like linear probing (setting
+j += 1, or j -= 1, on each loop trip), it scans the table entries in a fixed
+order.  This would be bad, except that's not the only thing we do, and it's
+actually *good* in the common cases where hash keys are consecutive.  In an
+example that's really too small to make this entirely clear, for a table of
+size 2**3 the order of indices is:
+
+    0 -> 1 -> 6 -> 7 -> 4 -> 5 -> 2 -> 3 -> 0 [and here it's repeating]
+```
+
 # 哈希函数
 到这里你应该明白哈希表插入的工作原理了，不过有个重要的问题之前没提到，就是 hash 函数怎么选？
 当然是散列得到的冲突越来越小就好啦，也就是说每个 key 都能尽量被等可能地散列到 m 个槽中的任何一个，并且与其他 key 被散列到哪个槽位无关。
-如果你感兴趣，可以阅读后边提到的一些参考资料。
+如果你感兴趣，可以阅读后边提到的一些参考资料。视频里我们使用二次探查函数，它相比线性探查得到的结果冲突会更少。
 
 
 # 装载因子(load factor)
@@ -124,7 +147,7 @@ GROWTH_RATE 这个关键字，你会发现不同版本的 cpython 使用了不�
 实践是检验真理的唯一标准，这里我们来实现一个简化版的哈希表 ADT，主要是为了让你更好地了解它的工作原理，有了它，后边实现起 dict 和 set 来就小菜一碟了。
 这里我们使用到了定长数组，还记得我们在数组和列表章节里实现的 Array 吧，这里要用上了。
 
-解决冲突我们使用二次探查法。我们来实现三个哈希表最常用的基本操作，这实际上也是使用字典的时候最常用的操作。
+解决冲突我们使用二次探查法，模拟 cpython 二次探查函数的实现。我们来实现三个哈希表最常用的基本操作，这实际上也是使用字典的时候最常用的操作。
 
 - add(key, value)
 - get(key, default)
@@ -139,7 +162,7 @@ class Slot(object):
     3.槽正在使用 Slot 节点
     """
     def __init__(self, key, value):
-        self.key, self.value = self.key, self.value
+        self.key, self.value = key, value
 
 class HashTable(object):
     pass
@@ -148,9 +171,10 @@ class HashTable(object):
 具体的实现和代码编写在视频里讲解。这个代码可不太好实现，稍不留神就会有错，我们还是通过编写单元测试验证代码的正确性。
 
 # 思考题
+- 请你分析下哈希表插入和删除元素的平均时间复杂度是多少？我们都实现代码了，相信这个问题你可以回答上来
 - Slot 在二次探查法里为什么不能直接删除？为什么我们要给它定义几个状态？
 
 # 延伸阅读
 - 《Data Structures and Algorithms in Python》11 章 Hash Tables
-- 《算法导论》第三版 11 章散列表
+- 《算法导论》第三版 11 章散列表，了解几种哈希冲突的解决方式，以及为什么我们选择二次探查而不是线性探查法？
 - 介绍 c 解释器如何实现的 python dict对象：[Python dictionary implementation](http://www.laurentluce.com/posts/python-dictionary-implementation/)

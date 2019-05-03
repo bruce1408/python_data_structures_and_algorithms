@@ -1,12 +1,13 @@
 # 二叉查找树(BST)
 
-二叉树的一种应用就是来实现堆，今天我们再看看用二叉查找树。
-前面有章节说到了查找操作，包括线性查找和二分查找，线性查找效率比较低，二分又要求必须是有序的序列，
-为了维持有序插入的代价比较高。能不能有一种插入和查找都比较快的数据结构呢？二叉查找树就是这样一种结构，可以高效地插入和查询节点。
+二叉树的一种应用就是来实现堆，今天我们再看看用二叉查找树(Binary Search Tree, BST)。
+前面有章节说到了查找操作，包括线性查找、二分查找、哈希查找等，线性查找效率比较低，二分又要求必须是有序的序列，
+为了维持有序插入的代价比较高、哈希查找效率很高但是浪费空间。能不能有一种插入和查找都比较快的数据结构呢？二叉查找树就是这样一种结构，可以高效地插入和查询节点。
 
 # BST 定义
 
 二叉查找树是这样一种二叉树结构，它的每个节点包含一个 key 和它附带的数据，对于每个内部节点 V：
+
 - 所有 key 小于 V 的都被存储在 V 的左子树
 - 所有 key 大于 V 的都存储在 V 的右子树
 
@@ -164,7 +165,7 @@ bst = BST.build_from(NODE_LIST)
 ![](./bst_remove_leaf.png)
 
 #### 删除只有一个孩子的节点
-删除有一个孩子的节点时，我们拿掉需要删除的节点，之后把它的父亲指向它的孩子就行，以为根据 BST
+删除有一个孩子的节点时，我们拿掉需要删除的节点，之后把它的父亲指向它的孩子就行，因为根据 BST
 左子树都小于节点，右子树都大于节点的特性，删除它之后这个条件依旧满足。
 
 ![](./bst_remove_node_with_one_child.png)
@@ -176,15 +177,15 @@ bst = BST.build_from(NODE_LIST)
 
 但是这种方式可能会影响树的高度，降低查找的效率。这里我们用另一种非常巧妙的方式。
 还记得上边提到的吗，如果你中序遍历 BST 并且输出每个节点的 key，你会发现就是一个有序的数组。
-[1 4 12 23 29 37 41 60 71 84 90 100]。 这里我们定义两个概念，逻辑前任(predecessor)和后继(successor)，请看下图:
+`[1 4 12 23 29 37 41 60 71 84 90 100]`。这里我们定义两个概念，逻辑前任(predecessor)和后继(successor)，请看下图:
 
 ![](./predecessor_successor.png)
 
 12 在中序遍历中的逻辑前任和后继分别是 4 和 23 节点。于是我们还有一种方法来删除 12 这个节点：
 
-- 找到节点待删除节点 N(12) 的后继节点 S(23)
+- 找到待删除节点 N(12) 的后继节点 S(23)
 - 复制节点 S 到节点 N
-- 删除节点 S
+- 从 N 的右子树中删除节点 S，并更新其删除后继节点后的右子树
 
 说白了就是找到后继并且替换，这里之所以能保证这种方法是正确的，你会发现替换后依旧是保持了 BST 的性质。
 有个问题是如何找到后继节点呢？待删除节点的右子树的最小的节点不就是后继嘛，上边我们已经实现了找到最小 key 的方法了。
@@ -206,25 +207,27 @@ bst = BST.build_from(NODE_LIST)
             subtree.right = self._bst_remove(subtree.right, key)
             return subtree
         else:  # 找到了需要删除的节点
-            if subtree.left is None and subtree.right is None:    # left node
+            if subtree.left is None and subtree.right is None:    # 叶节点，返回 None 把其父亲指向它的指针置为 None
                 return None
             elif subtree.left is None or subtree.right is None:  # 只有一个孩子
                 if subtree.left is not None:
-                    return subtree.left
+                    return subtree.left   # 返回它的孩子并让它的父亲指过去
                 else:
                     return subtree.right
-            else:  # 俩孩子
+            else:  # 俩孩子，寻找后继节点替换，并从待删节点的右子树中删除后继节点
                 successor_node = self._bst_min_node(subtree.right)
-                subtree.key, subtree.value = successor_node.key, subtree.value
+                subtree.key, subtree.value = successor_node.key, successor_node.value
                 subtree.right = self._bst_remove(subtree.right, successor_node.key)
                 return subtree
 
     def remove(self, key):
         assert key in self
         self.size -= 1
+        return self._bst_remove(self.root, key)
 ```
 
 完整代码你可以在本章的 bst.py  找到。
+另外推荐一个可以在线演示过程的网址大家可以手动执行下看看效果： https://www.cs.usfca.edu/~galles/visualization/BST.html
 
 # 时间复杂度分析
 
@@ -239,4 +242,11 @@ bst = BST.build_from(NODE_LIST)
 
 
 # 延伸阅读
-- 《Data Structures and Algorithms in Python》14 章，树的概念和算法还有很多，我们这里介绍最基本的
+- 《Data Structures and Algorithms in Python》14 章，树的概念和算法还有很多，我们这里介绍最基本的帮你打个基础
+- 了解红黑树。普通二叉查找树有个很大的问题就是难以保证树的平衡，极端情况下某些节点可能会非常深，导致查找复杂度大幅退化。而平衡二叉树就是为了解决这个问题。请搜索对应资料了解下。
+- 了解 mysql 索引使用的 B-Tree 结构(多路平衡查找树)，这个是后端面试数据库的常考点。想想为什么？当元素非常多的时候，二叉树的深度会很深，导致多次磁盘查找。[从B树、B+树、B*树谈到R 树](https://blog.csdn.net/v_JULY_v/article/details/6530142)
+
+
+# Leetcode
+
+验证是否是合法二叉搜索树 [validate-binary-search-tree](https://leetcode.com/problems/validate-binary-search-tree/

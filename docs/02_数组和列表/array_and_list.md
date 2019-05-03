@@ -24,7 +24,7 @@ Python 的 array 是内存连续、存储的都是同一数据类型的结构，
 
 操作                                  | 平均时间复杂度 |
 --------------------------------------|----------------|
-list[index]| O(1)           |
+list[index]                           | O(1)           |
 list.append                           | O(1)           |
 list.insert                           | O(n)           |
 list.pop(index), default last element | O(1)           |
@@ -48,3 +48,7 @@ list.remove                           | O(n)           |
 [Python list implementation](https://www.laurentluce.com/posts/python-list-implementation/)
 
 [https://github.com/python/cpython/blob/master/Objects/listobject.c](https://github.com/python/cpython/blob/master/Objects/listobject.c)
+
+
+# 勘误
+视频里的 Array.clear 方法有误。应该是 `for i in range(len(self._items))`，已经在后续所有使用到 Array 的代码里修正

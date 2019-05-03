@@ -19,7 +19,7 @@ class Array(object):
         return self._size
 
     def clear(self, value=None):
-        for i in range(self._items):
+        for i in range(len(self._items)):
             self._items[i] = value
 
     def __iter__(self):
@@ -123,3 +123,18 @@ def test_heapsort_reverse():
     l = list(range(10))
     random.shuffle(l)
     assert heapsort_reverse(l) == sorted(l, reverse=True)
+
+
+def heapsort_use_heapq(iterable):
+    from heapq import heappush, heappop
+    items = []
+    for value in iterable:
+        heappush(items, value)
+    return [heappop(items) for i in range(len(items))]
+
+
+def test_heapsort_use_heapq():
+    import random
+    l = list(range(10))
+    random.shuffle(l)
+    assert heapsort_use_heapq(l) == sorted(l)

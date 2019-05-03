@@ -2,6 +2,8 @@
 
 # NOTE: 这里拷贝的 double_link_list.py 里的代码
 
+from collections import deque
+
 
 class Node(object):
 
@@ -31,7 +33,7 @@ class CircularDoubleLinkedList(object):
         return self.root.prev
 
     def append(self, value):    # O(1), 你发现一般不用 for 循环的就是 O(1)，有限个步骤
-        if self.maxsize is not None and len(self) > self.maxsize:
+        if self.maxsize is not None and len(self) >= self.maxsize:
             raise Exception('LinkedList is Full')
         node = Node(value=value)
         tailnode = self.tailnode() or self.root
@@ -43,7 +45,7 @@ class CircularDoubleLinkedList(object):
         self.length += 1
 
     def appendleft(self, value):
-        if self.maxsize is not None and len(self) > self.maxsize:
+        if self.maxsize is not None and len(self) >= self.maxsize:
             raise Exception('LinkedList is Full')
         node = Node(value=value)
         if self.root.next is self.root:   # empty
@@ -142,13 +144,28 @@ def test_deque():
 
 class Stack(object):
     def __init__(self):
-        self.deque = Deque()
+        self.deque = Deque()   # 你可以很容易替换为 python 内置的 collections.deque
 
     def push(self, value):
         self.deque.append(value)
 
     def pop(self):
         return self.deque.pop()
+
+
+class Stack2(object):
+
+    def __init__(self):
+        self._deque = deque()
+
+    def push(self, value):
+        return self._deque.append(value)
+
+    def pop(self):
+        return self._deque.pop()
+
+    def empty(self):
+        return len(self._deque) == 0
 
 
 def test_stack():
